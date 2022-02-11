@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "cMDXeyykmidIuCktuXYcG2MFzyNLg9dqun3iTKlSlXwkDc0RrlqBsIzahMOSS2bUy1YluuM/pQ0bjtEo0UwABw==",
+  "success": true,
+  "projectFilePath": "D:\\Users\\KKKKKP\\Desktop\\physical_exper_helper\\backend\\phy_exp_api\\phy_exp_api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\KKKKKP\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\3.1.15\\microsoft.netcore.app.host.win-x64.3.1.15.nupkg.sha512"
+  ],
+  "logs": []
+}
