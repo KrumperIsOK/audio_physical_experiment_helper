@@ -13,8 +13,8 @@ const http = Axios.create({
     timeout: 0 // request timeout
 });
 //在main.js设置全局的请求次数，请求的间隙，用于自动再次请求
-http.defaults.retry = 2;
-http.defaults.retryDelay = 1000;
+http.defaults.retry = 1;
+http.defaults.retryDelay = 500;
 
 // 添加一个请求拦截器
 http.interceptors.request.use(

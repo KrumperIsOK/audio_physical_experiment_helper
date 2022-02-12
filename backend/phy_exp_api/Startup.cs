@@ -45,7 +45,7 @@ namespace phy_exp_api
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseHttpsRedirection();
             app.UseRouting();
 
             app.UseCors(MyAllowSpecificOrigins); // has to be after UseRouting, but before UseAuthorization

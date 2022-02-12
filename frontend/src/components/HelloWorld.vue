@@ -2,23 +2,20 @@
   <div class="hello">
     <h3>{{ msg }}</h3>
     <!-- <el-input v-model="input" placeholder="音频保存路径"></el-input> -->
-    <!-- <el-form :inline="true" :model="formInline" class="demo-form-inline">
+    <el-form label-position="top" label-width="100px" style="max-width: 460px">
       <el-form-item label="服务器地址">
-        <el-input v-model="ip" placeholder="192.168.123.53"></el-input>
+        <el-input v-model="address" placeholder="ip"></el-input>
       </el-form-item>
       <el-form-item label="服务器端口">
-        <el-input v-model="port" placeholder="8081"></el-input>
+        <el-input v-model="port" placeholder="port"></el-input>
       </el-form-item>
-      <el-form-item>
-      <el-button type="修改服务器地址" @click="changeServer()">Query</el-button>
-    </el-form-item>
-    </el-form> -->
-    <el-form
-      label-position="top"
-      label-width="100px"
-      :model="formLabelAlign"
-      style="max-width: 460px"
-    >
+      <!-- <el-form-item>
+        <el-button type="primary" @click="changeServer()"
+          >修改服务器地址</el-button
+        >
+      </el-form-item> -->
+    </el-form>
+    <el-form label-position="top" label-width="100px" style="max-width: 460px">
       <el-form-item label="实验任务">
         <el-select v-model="task">
           <el-option label="asr" value="asr"></el-option>
@@ -57,7 +54,7 @@ import Recorder from "js-audio-recorder";
 
 // const lamejs = require('lamejs')
 
-const recorder = new Recorder({
+var recorder = new Recorder({
   sampleBits: 16, // 采样位数，支持 8 或 16，默认是16
 
   sampleRate: 16000, // 采样率，支持 11025、16000、22050、24000、44100、48000，根据浏览器默认值，我的chrome是48000
@@ -77,6 +74,8 @@ const recordConfig = {
   // compiling: false,(0.x版本中生效,1.x增加中) // 是否边录边转换，默认是false
 };
 
+var recorder1 = new Recorder(recordConfig);
+
 // 绑定事件-打印的是当前录音数据
 
 // recorder.onprogress = function (params) {
@@ -93,19 +92,30 @@ export default {
   props: {
     msg: String,
     input: String,
+    address: {
+      type: String,
+      default: "192.168.43.115",
+    },
+    port: {
+      type: String,
+      default: "5000",
+    },
     task: {
       type: String,
       default: "asr",
     },
     room: {
       type: String,
-      default: "test",
+      default: "test_room",
     },
     position: {
       type: String,
       default: "15cm",
     },
-    device: String,
+    device: {
+      type: String,
+      default: "my_device",
+    },
   },
   data() {
     return {
@@ -113,15 +123,20 @@ export default {
       notReady: true,
       count: -1,
       delay: -200,
+      numRepeat: 0,
     };
   },
   methods: {
+    // changeServer() {
+    //   changeBaseURL("https://" + this.address + ":" + this.port + "/api");
+    // },
     upload(audio, path) {
       let formData = new FormData();
       let data = audio;
       formData.append("file", data);
       formData.append("path", path);
       return request({
+        baseURL: this.ip,
         url: "./audio/uploadAudio/",
         method: "post",
         data: formData,
@@ -136,15 +151,57 @@ export default {
           console.log("start recording...");
           setTimeout(() => {
             console.log("finish recording.");
-            recorder.stop();
+
+            // recorder.stop();
+            let wav = recorder.getWAVBlob();
+            if (recorder.duration < 1.0) {
+              this.$message({
+                showClose: true,
+                message: "录音时长不足：" + recorder.duration,
+                type: "warning",
+              });
+              this.count += 1; // 录音失败，重来
+              this.numRepeat += 1;
+              //   recorder.destroy().then(
+              //     () => {
+              //     //   this.$message({
+              //     //     showClose: true,
+              //     //     message: "更新录音机",
+              //     //     type: "warning",
+              //     //   });
+              //     //   recorder = null;
+              //       recorder = new Recorder(recordConfig);
+              //     //   this.$message({
+              //     //     showClose: true,
+              //     //     message: "更新录音机1",
+              //     //     type: "warning",
+              //     //   });
+              //       cb();
+              //     },
+              //     (e) => {
+              //       this.$message({
+              //         showClose: true,
+              //         message: "录音机销毁失败：" + e,
+              //         type: "error",
+              //       });
+              //     }
+              //   );
+              // swap
+              let temp = recorder;
+              recorder = recorder1;
+              recorder1 = temp;
+              cb();
+              return;
+            }
             // recorder = null;
             this.$message({
               showClose: true,
-              message: "录音时长2：" + recorder.duration,
+              message: "录音时长：" + recorder.duration,
               type: "success",
             });
             //   recorder.play();
-            let wav = recorder.getWAVBlob();
+            // let wav = recorder.getWAVBlob();
+            this.numRepeat = 0;
             console.log("uploading audio: " + fullPath);
             this.upload(wav, fullPath).then(cb, (e) => {
               this.$message({
@@ -173,12 +230,14 @@ export default {
     play(path) {
       // 请求播放音频
       return request({
+        baseURL: this.ip,
         url: "./audio/playaudio",
         params: { path: path },
       });
     },
     getAudios(task) {
       request({
+        baseURL: this.ip,
         url: "./audio/audioTask",
         params: { task: task },
       }).then(
@@ -187,7 +246,7 @@ export default {
           this.audioList = res.data;
           this.$message({
             showClose: true,
-            message: "音频列表获取成功",
+            message: "成功查询到" + this.audioList.length + "条音频",
             type: "success",
           });
           this.notReady = false;
@@ -207,11 +266,15 @@ export default {
       if (this.count < 0) return;
       this.notReady = true;
       console.log("exp " + this.count + " started");
-      let audio = this.audioList[this.count];
-      let audioPath = this.task + "/" + audio;
-      let fileName = this.audioSaveDir.replaceAll("/", "-") + "-" + audio;
-      let fullPath = this.audioSaveDir + "/" + fileName;
+      let audioRelativePath = this.audioList[this.count]; // 相对task目录的相对路径
+      let audioPath = this.task + "/" + audioRelativePath; // 相对audio根路径的相对路径
+      let audio = audioRelativePath.split("/").at(-1); // 文件名
+      let audioSavePath = this.audioSaveDir + "/" + audioRelativePath;
+      let finalDir = audioSavePath.substring(0, audioSavePath.indexOf(audio));
+      let fullPath = finalDir + finalDir.replaceAll("/", "-") + audio;
+      //   let fullPath = this.audioSaveDir + "/" + fileName;
       setTimeout(
+        // 播放延时
         () => {
           this.play(audioPath).then(
             // 成功回调
@@ -219,7 +282,7 @@ export default {
               console.log("successfully played audio: " + audioPath);
               this.$message({
                 showClose: true,
-                message: "音频播放成功",
+                message: "音频播放成功:：" + this.count,
                 type: "success",
               });
               // 播放成功后开始录音
@@ -237,9 +300,18 @@ export default {
         this.delay < 0 ? -this.delay : 0
       );
       setTimeout(
+        // 录音延时
         () => {
           this.record(fullPath, () => {
-            setTimeout(this.exp, 1000); // 一秒实验间隔，确保录制成功！
+            if (this.numRepeat > 5) {
+              this.$message({
+                showClose: true,
+                message: "录音故障",
+                type: "error",
+              });
+              return;
+            }
+            setTimeout(this.exp, 1500); // 一秒实验间隔，确保录制成功！
           });
         },
         this.delay > 0 ? this.delay : 0
@@ -302,6 +374,9 @@ export default {
         "/" +
         (this.device ? this.device : "")
       );
+    },
+    ip() {
+      return "https://" + this.address + ":" + this.port + "/api";
     },
   },
   created() {

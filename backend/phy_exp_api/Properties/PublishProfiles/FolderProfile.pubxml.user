@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_PublishTargetUrl>D:\Users\KKKKKP\Desktop\one_exe</_PublishTargetUrl>
+    <History>True|2022-02-12T11:02:01.2654142Z;True|2022-02-12T19:00:17.2659497+08:00;True|2022-02-12T18:59:18.3732758+08:00;True|2022-02-12T18:57:04.4578504+08:00;True|2022-02-12T18:18:22.4288466+08:00;False|2022-02-12T18:17:52.0847561+08:00;True|2022-02-12T18:02:37.3533151+08:00;True|2022-02-12T16:42:32.7933262+08:00;True|2022-02-12T02:36:44.6964585+08:00;True|2022-02-12T02:30:46.2686909+08:00;</History>
+  </PropertyGroup>
+</Project>

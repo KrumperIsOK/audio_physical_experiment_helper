@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,12 +14,22 @@ namespace phy_exp_api.Controllers
     [ApiController]
     public class AudioController : ControllerBase
     {
-        string MicRootPath = @"D:\Users\KKKKKP\Desktop\phy_exp\collected";
-        string AudioRootPath = @"D:\Users\KKKKKP\Desktop\phy_exp\adv_examples";
-        [HttpGet]
-        public ActionResult<string> PlayAudio(string path= "1000.wav")
+        private readonly IConfiguration Configuration;//读取配置文件
+        string MicRootPath;
+        string AudioRootPath;
+
+        public AudioController(IConfiguration configuration)
         {
-            try{
+            Configuration = configuration;
+            MicRootPath = Configuration["MicRootPath"];
+            AudioRootPath = Configuration["AudioRootPath"];
+
+        }
+        [HttpGet]
+        public ActionResult<string> PlayAudio(string path = "1000.wav")
+        {
+            try
+            {
                 string audioPath = Path.Combine(AudioRootPath, path);
                 SoundPlayer player = new SoundPlayer();
                 player.SoundLocation = audioPath;
@@ -35,15 +46,27 @@ namespace phy_exp_api.Controllers
         [HttpGet]
         public ActionResult<List<string>> AudioTask(string task)
         {
-            try{
+            try
+            {
+                string taskPath = Path.Combine(AudioRootPath, task);
+                void Recur(DirectoryInfo dir, ref List<string> audioPaths)
+                {
+                    var fsInfos = dir.GetFileSystemInfos();
+
+                    foreach (var fsInfo in fsInfos)
+                    {
+                        if (fsInfo is DirectoryInfo)
+                        {
+                            Recur((DirectoryInfo)fsInfo, ref audioPaths);
+                            continue;
+                        }
+                        audioPaths.Add(Path.GetRelativePath(taskPath, fsInfo.FullName).Replace("\\", "/"));
+                    }
+                }
                 string fullPath = Path.Combine(AudioRootPath, task);
                 var dir = new DirectoryInfo(fullPath);
-                var fsInfos = dir.GetFiles();
                 List<string> audioPaths = new List<string>();
-                foreach (var fsInfo in fsInfos)
-                {
-                    audioPaths.Add(fsInfo.Name);
-                }
+                Recur(dir, ref audioPaths);
                 return audioPaths;
             }
             catch (Exception ex)

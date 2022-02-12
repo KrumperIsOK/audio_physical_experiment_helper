@@ -20,7 +20,7 @@ namespace phy_exp_api
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseUrls("https://*:5000").UseStartup<Startup>();
                 });
     }
 }

@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "lq4yCTm3ACoMGfPiGAg6P2ZXbujfQ5GZRjiRLeNGf2ZFFbxesaDL8D6pyxdl0zB5wcrDj6P1ScNasmJwLtkBng==",
+  "success": true,
+  "projectFilePath": "D:\\Users\\KKKKKP\\Desktop\\physical_exper_helper\\backend\\phy_exp_api\\phy_exp_api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\KKKKKP\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x86\\3.1.15\\microsoft.netcore.app.runtime.win-x86.3.1.15.nupkg.sha512",
+    "C:\\Users\\KKKKKP\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x86\\3.1.15\\microsoft.windowsdesktop.app.runtime.win-x86.3.1.15.nupkg.sha512",
+    "C:\\Users\\KKKKKP\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x86\\3.1.15\\microsoft.aspnetcore.app.runtime.win-x86.3.1.15.nupkg.sha512",
+    "C:\\Users\\KKKKKP\\.nuget\\packages\\microsoft.netcore.app.host.win-x86\\3.1.15\\microsoft.netcore.app.host.win-x86.3.1.15.nupkg.sha512"
+  ],
+  "logs": []
+}
