@@ -15,14 +15,17 @@ namespace phy_exp_api.Controllers
     public class AudioController : ControllerBase
     {
         private readonly IConfiguration Configuration;//读取配置文件
-        string MicRootPath;
-        string AudioRootPath;
+        List<string> Tasks { get; set; } // TODO: 添加任务类型配置
+        string MicRootPath { get; set; }
+        string AudioRootPath { get; set; }
 
         public AudioController(IConfiguration configuration)
         {
             Configuration = configuration;
             MicRootPath = Configuration["MicRootPath"];
             AudioRootPath = Configuration["AudioRootPath"];
+            Directory.CreateDirectory(Path.Combine(AudioRootPath, "sr"));
+            Directory.CreateDirectory(Path.Combine(AudioRootPath, "asr"));
 
         }
         [HttpGet]
