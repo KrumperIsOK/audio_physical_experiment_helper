@@ -36,6 +36,9 @@
       </el-form-item>
     </el-form>
     <h3>{{ "实验录音保存目录：" + audioSaveDir }}</h3>
+    <div>
+      <el-tag :type="status">{{ statusString }}</el-tag>
+    </div>
     <el-button type="primary" @click="test(2)">测试</el-button>
     <el-button type="primary" @click="getAudios(task)">获取音频列表</el-button>
     <el-button
@@ -54,7 +57,7 @@ import Recorder from "js-audio-recorder";
 
 // const lamejs = require('lamejs')
 
-var recorder = new Recorder({
+let recorder = new Recorder({
   sampleBits: 16, // 采样位数，支持 8 或 16，默认是16
 
   sampleRate: 16000, // 采样率，支持 11025、16000、22050、24000、44100、48000，根据浏览器默认值，我的chrome是48000
@@ -74,7 +77,7 @@ const recordConfig = {
   // compiling: false,(0.x版本中生效,1.x增加中) // 是否边录边转换，默认是false
 };
 
-var recorder1 = new Recorder(recordConfig);
+// var recorder1 = new Recorder(recordConfig);
 
 // 绑定事件-打印的是当前录音数据
 
@@ -124,6 +127,8 @@ export default {
       count: -1,
       delay: -200,
       numRepeat: 0,
+      status: "info",
+      statusString: "空闲中",
     };
   },
   methods: {
@@ -162,34 +167,11 @@ export default {
               });
               this.count += 1; // 录音失败，重来
               this.numRepeat += 1;
-              //   recorder.destroy().then(
-              //     () => {
-              //     //   this.$message({
-              //     //     showClose: true,
-              //     //     message: "更新录音机",
-              //     //     type: "warning",
-              //     //   });
-              //     //   recorder = null;
-              //       recorder = new Recorder(recordConfig);
-              //     //   this.$message({
-              //     //     showClose: true,
-              //     //     message: "更新录音机1",
-              //     //     type: "warning",
-              //     //   });
-              //       cb();
-              //     },
-              //     (e) => {
-              //       this.$message({
-              //         showClose: true,
-              //         message: "录音机销毁失败：" + e,
-              //         type: "error",
-              //       });
-              //     }
-              //   );
               // swap
-              let temp = recorder;
-              recorder = recorder1;
-              recorder1 = temp;
+              //   let temp = recorder;
+              //   recorder = recorder1;
+              //   recorder1 = temp;
+              recorder = new Recorder(recordConfig);
               cb();
               return;
             }
@@ -263,7 +245,12 @@ export default {
     },
     exp() {
       this.count -= 1;
-      if (this.count < 0) return;
+      if (this.count < 0) {
+        this.status = "success";
+        this.statusString =
+          "实验成功！共录制音频" + this.audioList.length + "条";
+        return;
+      }
       this.notReady = true;
       console.log("exp " + this.count + " started");
       let audioRelativePath = this.audioList[this.count]; // 相对task目录的相对路径
@@ -309,6 +296,9 @@ export default {
                 message: "录音故障",
                 type: "error",
               });
+              this.numRepeat = 0;
+              this.status = "danger";
+              this.statusString = "实验失败，录音故障";
               return;
             }
             setTimeout(this.exp, 1500); // 一秒实验间隔，确保录制成功！
@@ -323,6 +313,8 @@ export default {
       //     p = setTimeout(() => {}, 2000);
       //   });
       this.exp();
+      this.status = "";
+      this.statusString = "实验中...";
       //   alert("实验开始！保存路径：" + path);
     },
     test(count) {
