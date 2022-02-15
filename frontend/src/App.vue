@@ -1,6 +1,6 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld msg="简易物理实验自动化Web服务" />
+  <HelloWorld msg="简易声音物理实验自动化Web服务" />
 </template>
 
 <script>

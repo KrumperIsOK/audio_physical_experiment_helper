@@ -25,7 +25,7 @@ namespace phy_exp_api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null); // 添加Json序列化设置，避免序列化时键的名称首字母被format为小写;
 
             // 添加跨域访问设置（前后端完全分离）
             services.AddCors(options =>

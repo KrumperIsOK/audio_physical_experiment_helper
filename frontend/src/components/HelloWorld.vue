@@ -15,14 +15,21 @@
         >
       </el-form-item> -->
     </el-form>
-    <el-form label-position="top" label-width="100px" style="max-width: 460px">
-      <el-form-item label="实验任务">
-        <el-select v-model="task">
+    <el-form
+      label-position="top"
+      label-width="100px"
+      style="max-width: 460px"
+      class="demo-dynamic"
+      :model="domains"
+    >
+      <el-form-item label="实验任务" :required="true">
+        <!-- <el-select v-model="task">
           <el-option label="asr" value="asr"></el-option>
           <el-option label="sr" value="sr"></el-option>
-        </el-select>
+        </el-select> -->
+        <el-input v-model="task"></el-input>
       </el-form-item>
-      <el-form-item label="实验房间">
+      <!-- <el-form-item label="实验房间">
         <el-input v-model="room"></el-input>
       </el-form-item>
       <el-form-item label="场景布置（摆放位置或距离）">
@@ -30,6 +37,27 @@
       </el-form-item>
       <el-form-item label="设备名称">
         <el-input v-model="device"></el-input>
+      </el-form-item> -->
+      <el-form-item
+        v-for="(domain, index) in domains"
+        :key="domain.key"
+        :label="'实验条件' + index"
+        :prop="index + '.value'"
+        :rules="{
+          required: true,
+          message: '实验条件不可为空',
+          trigger: 'blur',
+        }"
+      >
+        <el-input v-model="domain.value"></el-input>
+        <el-button class="mt-2" @click.prevent="removeDomain(domain)"
+          >删除</el-button
+        >
+      </el-form-item>
+      <el-form-item>
+        <!-- <el-button type="primary" @click="submitForm(formRef)">Submit</el-button> -->
+        <el-button @click="addDomain">添加实验条件</el-button>
+        <!-- <el-button @click="resetForm(formRef)">Reset</el-button> -->
       </el-form-item>
       <el-form-item label="录音延时（ms）">
         <el-input-number v-model="delay" :min="-1000" :max="1000" />
@@ -54,8 +82,6 @@
 <script>
 import request from "@/util/request";
 import Recorder from "js-audio-recorder";
-
-// const lamejs = require('lamejs')
 
 let recorder = new Recorder({
   sampleBits: 16, // 采样位数，支持 8 或 16，默认是16
@@ -107,28 +133,34 @@ export default {
       type: String,
       default: "asr",
     },
-    room: {
-      type: String,
-      default: "test_room",
-    },
-    position: {
-      type: String,
-      default: "15cm",
-    },
-    device: {
-      type: String,
-      default: "my_device",
-    },
+    // room: {
+    //   type: String,
+    //   default: "test_room",
+    // },
+    // position: {
+    //   type: String,
+    //   default: "15cm",
+    // },
+    // device: {
+    //   type: String,
+    //   default: "my_device",
+    // },
   },
   data() {
     return {
       audioList: [],
+      audioDuration: [],
       notReady: true,
       count: -1,
       delay: -200,
       numRepeat: 0,
       status: "info",
       statusString: "空闲中",
+      domains: [
+        { key: 0, value: "test_room" },
+        { key: 1, value: "15cm" },
+        { key: 2, value: "my_device" },
+      ],
     };
   },
   methods: {
@@ -159,7 +191,7 @@ export default {
 
             // recorder.stop();
             let wav = recorder.getWAVBlob();
-            if (recorder.duration < 1.0) {
+            if (recorder.duration * 1000 < this.audioDuration[this.count]) {
               this.$message({
                 showClose: true,
                 message: "录音时长不足：" + recorder.duration,
@@ -194,7 +226,7 @@ export default {
             });
             //   recorder.play();
             return 1;
-          }, 1200);
+          }, this.audioDuration[this.count] * 1.2);
         },
         (e) => {
           this.$message({
@@ -225,7 +257,12 @@ export default {
       }).then(
         (res) => {
           //   console.log(res.data);
-          this.audioList = res.data;
+          this.audioList = [];
+          this.audioDuration = [];
+          res.data.forEach((audioFile) => {
+            this.audioList.push(audioFile.Name);
+            this.audioDuration.push(audioFile.Duration);
+          });
           this.$message({
             showClose: true,
             message: "成功查询到" + this.audioList.length + "条音频",
@@ -269,10 +306,14 @@ export default {
               console.log("successfully played audio: " + audioPath);
               this.$message({
                 showClose: true,
-                message: "音频播放成功:：" + this.count,
+                message:
+                  "音频播放成功：" +
+                  this.count +
+                  "；时长：" +
+                  this.audioDuration[this.count] / 1000 +
+                  " s",
                 type: "success",
               });
-              // 播放成功后开始录音
             },
             // 失败回调
             (e) => {
@@ -301,7 +342,7 @@ export default {
               this.statusString = "实验失败，录音故障";
               return;
             }
-            setTimeout(this.exp, 1500); // 一秒实验间隔，确保录制成功！
+            setTimeout(this.exp, 1200); // 一秒实验间隔，确保录制成功！
           });
         },
         this.delay > 0 ? this.delay : 0
@@ -354,18 +395,25 @@ export default {
         this.delay > 0 ? this.delay : 0
       );
     },
+    removeDomain(item) {
+      const index = this.domains.indexOf(item);
+      if (index !== -1) {
+        this.domains.splice(index, 1);
+      }
+    },
+    addDomain() {
+      this.domains.push({
+        key: Date.now(),
+        value: "实验条件",
+      });
+      //   this.$forceUpdate();
+    },
   },
   computed: {
     audioSaveDir() {
-      return (
-        (this.task ? this.task : "") +
-        "/" +
-        (this.room ? this.room : "") +
-        "/" +
-        (this.position ? this.position : "") +
-        "/" +
-        (this.device ? this.device : "")
-      );
+      let dir = this.task ? this.task : "";
+      dir += "/" + this.domains.map((d) => d.value).join("/");
+      return dir;
     },
     ip() {
       return "https://" + this.address + ":" + this.port + "/api";
