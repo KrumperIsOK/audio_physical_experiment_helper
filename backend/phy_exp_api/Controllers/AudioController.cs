@@ -29,6 +29,7 @@ namespace phy_exp_api.Controllers
             AudioRootPath = Configuration["AudioRootPath"];
             Directory.CreateDirectory(Path.Combine(AudioRootPath, "sr"));
             Directory.CreateDirectory(Path.Combine(AudioRootPath, "asr"));
+            Directory.CreateDirectory(Path.Combine(AudioRootPath, "test"));
 
         }
         [HttpGet]

@@ -62,6 +62,9 @@
       <el-form-item label="录音延时（ms）">
         <el-input-number v-model="delay" :min="-1000" :max="1000" />
       </el-form-item>
+      <el-form-item label="重复次数">
+        <el-input-number v-model="repeat" :min="0" :max="20" />
+      </el-form-item>
     </el-form>
     <h3>{{ "实验录音保存目录：" + audioSaveDir }}</h3>
     <div>
@@ -153,13 +156,17 @@ export default {
       notReady: true,
       count: -1,
       delay: -200,
+      repeat: 1,
       numRepeat: 0,
       status: "info",
       statusString: "空闲中",
       domains: [
-        { key: 0, value: "test_room" },
+        // { key: 0, value: "room" },
         { key: 1, value: "15cm" },
         { key: 2, value: "my_device" },
+        { key: 3, value: "jbl" },
+        { key: 4, value: "loudness60" },
+        { key: 5, value: "noise30" },
       ],
     };
   },
@@ -179,7 +186,7 @@ export default {
         data: formData,
       });
     },
-    record(fullPath, cb) {
+    record(fullPath, cb, play = false) {
       // 开始录音
       //   recorder = new Recorder(recordConfig);
       recorder.resume();
@@ -190,6 +197,11 @@ export default {
             console.log("finish recording.");
 
             // recorder.stop();
+            if (play) {
+              recorder.stop();
+              recorder.play();
+              console.log("录制端开始播放录制音频");
+            }
             let wav = recorder.getWAVBlob();
             if (recorder.duration * 1000 < this.audioDuration[this.count]) {
               this.$message({
@@ -207,6 +219,7 @@ export default {
               cb();
               return;
             }
+
             // recorder = null;
             this.$message({
               showClose: true,
@@ -249,7 +262,7 @@ export default {
         params: { path: path },
       });
     },
-    getAudios(task) {
+    getAudios(task, cb = () => {}) {
       request({
         baseURL: this.ip,
         url: "./audio/audioTask",
@@ -270,6 +283,8 @@ export default {
           });
           this.notReady = false;
           this.count = this.audioList.length;
+          // execute command
+          cb();
         },
         (e) => {
           this.$message({
@@ -280,22 +295,34 @@ export default {
         }
       );
     },
-    exp() {
+    exp(task, play = false) {
       this.count -= 1;
       if (this.count < 0) {
-        this.status = "success";
-        this.statusString =
-          "实验成功！共录制音频" + this.audioList.length + "条";
-        return;
+        this.repeat -= 1;
+        if (this.repeat <= 0) {
+          this.status = "success";
+          this.statusString =
+            "实验成功！共录制音频" + this.audioList.length + "条";
+          this.repeat = 0;
+          return;
+        } else {
+          this.count = this.audioList.length - 1;
+        }
       }
       this.notReady = true;
-      console.log("exp " + this.count + " started");
+      console.log("exp " + this.count + ", repeat " + this.repeat + " started");
       let audioRelativePath = this.audioList[this.count]; // 相对task目录的相对路径
-      let audioPath = this.task + "/" + audioRelativePath; // 相对audio根路径的相对路径
+      let audioPath = task + "/" + audioRelativePath; // 相对audio根路径的相对路径
       let audio = audioRelativePath.split("/").at(-1); // 文件名
       let audioSavePath = this.audioSaveDir + "/" + audioRelativePath;
       let finalDir = audioSavePath.substring(0, audioSavePath.indexOf(audio));
-      let fullPath = finalDir + finalDir.replaceAll("/", "-") + audio;
+      let fullPath =
+        finalDir +
+        finalDir.replaceAll("/", "-") +
+        "--r" +
+        this.repeat +
+        "--" +
+        audio;
       //   let fullPath = this.audioSaveDir + "/" + fileName;
       setTimeout(
         // 播放延时
@@ -330,20 +357,26 @@ export default {
       setTimeout(
         // 录音延时
         () => {
-          this.record(fullPath, () => {
-            if (this.numRepeat > 5) {
-              this.$message({
-                showClose: true,
-                message: "录音故障",
-                type: "error",
-              });
-              this.numRepeat = 0;
-              this.status = "danger";
-              this.statusString = "实验失败，录音故障";
-              return;
-            }
-            setTimeout(this.exp, 1200); // 一秒实验间隔，确保录制成功！
-          });
+          this.record(
+            fullPath,
+            () => {
+              if (this.numRepeat > 5) {
+                this.$message({
+                  showClose: true,
+                  message: "录音故障",
+                  type: "error",
+                });
+                this.numRepeat = 0;
+                this.status = "danger";
+                this.statusString = "实验失败，录音故障";
+                return;
+              }
+              setTimeout(() => {
+                this.exp(task, play);
+              }, 1200); // 一秒实验间隔，确保录制成功！
+            },
+            play
+          );
         },
         this.delay > 0 ? this.delay : 0
       );
@@ -353,47 +386,50 @@ export default {
       //   this.audioList.forEach((audio, idx) => {
       //     p = setTimeout(() => {}, 2000);
       //   });
-      this.exp();
+      this.exp(this.task);
       this.status = "";
       this.statusString = "实验中...";
       //   alert("实验开始！保存路径：" + path);
     },
     test(count) {
       if (count <= 0) return;
-      setTimeout(
-        () => {
-          this.play("test.wav").then(
-            // 成功回调
-            () => {
-              console.log("successfully played audio: test.wav");
-              this.$message({
-                showClose: true,
-                message: "音频播放成功",
-                type: "success",
-              });
-              // 播放成功后开始录音
-            },
-            // 失败回调
-            (e) => {
-              this.$message({
-                showClose: true,
-                message: "音频播放失败：" + e,
-                type: "warning",
-              });
-            }
-          );
-        },
-        this.delay < 0 ? -this.delay : 0
-      );
-      setTimeout(
-        () => {
-          this.record("./test_record.wav", () => {
-            recorder.play();
-            this.test(count - 1);
-          });
-        },
-        this.delay > 0 ? this.delay : 0
-      );
+      this.getAudios("test", () => {
+        this.exp("test", true);
+        // setTimeout(
+        //   () => {
+        //     this.play("test.wav").then(
+        //       // 成功回调
+        //       () => {
+        //         console.log("successfully played audio: test.wav");
+        //         this.$message({
+        //           showClose: true,
+        //           message: "音频播放成功",
+        //           type: "success",
+        //         });
+        //         // 播放成功后开始录音
+        //       },
+        //       // 失败回调
+        //       (e) => {
+        //         this.$message({
+        //           showClose: true,
+        //           message: "音频播放失败：" + e,
+        //           type: "warning",
+        //         });
+        //       }
+        //     );
+        //   },
+        //   this.delay < 0 ? -this.delay : 0
+        // );
+        // setTimeout(
+        //   () => {
+        //     this.record("./test_record.wav", () => {
+        //       recorder.play();
+        //       this.test(count - 1);
+        //     });
+        //   },
+        //   this.delay > 0 ? this.delay : 0
+        // );
+      });
     },
     removeDomain(item) {
       const index = this.domains.indexOf(item);
@@ -404,7 +440,7 @@ export default {
     addDomain() {
       this.domains.push({
         key: Date.now(),
-        value: "实验条件",
+        value: "",
       });
       //   this.$forceUpdate();
     },
