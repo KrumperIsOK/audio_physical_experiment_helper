@@ -1,3 +1,36 @@
+// import getNetworkIp from "@/util/ip";
+
+const os = require('os')
+
+function getNetworkIp() {
+    // 打开的 host
+    let needHost = '';
+    try {
+        // 获得网络接口列表
+        let network = os.networkInterfaces();
+        console.log("network: ", network);
+        for (let dev in network) {
+            let iface = network[dev];
+            for (let i = 0; i < iface.length; i++) {
+                let alias = iface[i];
+                if (
+                    alias.family === 'IPv4' &&
+                    alias.address !== '127.0.0.1' &&
+                    alias.address.startsWith("192.168") &&
+                    !alias.internal
+                ) {
+                    needHost = alias.address;
+                }
+            }
+        }
+    } catch (e) {
+        needHost = 'http://localhost';
+    }
+    return needHost;
+}
+
+// export default getNetworkIp
+
 module.exports = {
     // 将资源打包为相对路径
     // publicPath: "././",
@@ -11,6 +44,13 @@ module.exports = {
     },
     configureWebpack: {
         devtool: 'source-map'
+    },
+    chainWebpack: config => {
+        config.plugin('define').tap((args) => {
+            let ip = getNetworkIp();
+            args[0]['process.env'].BASE_IP = `"${ip}"`;
+            return args;
+        });
     }
 
 }

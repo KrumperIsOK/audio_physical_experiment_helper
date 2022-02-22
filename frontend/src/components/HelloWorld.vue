@@ -63,7 +63,7 @@
         <el-input-number v-model="delay" :min="-1000" :max="1000" />
       </el-form-item>
       <el-form-item label="重复次数">
-        <el-input-number v-model="repeat" :min="0" :max="20" />
+        <el-input-number v-model="numRepeat" :min="0" :max="20" />
       </el-form-item>
     </el-form>
     <h3>{{ "实验录音保存目录：" + audioSaveDir }}</h3>
@@ -84,6 +84,7 @@
 
 <script>
 import request from "@/util/request";
+import getNetworkIp from "@/util/ip";
 import Recorder from "js-audio-recorder";
 
 let recorder = new Recorder({
@@ -124,10 +125,10 @@ export default {
   props: {
     msg: String,
     input: String,
-    address: {
-      type: String,
-      default: "192.168.43.115",
-    },
+    // address: {
+    //   type: String,
+    //   default: "192.168.43.115",
+    // },
     port: {
       type: String,
       default: "5000",
@@ -155,19 +156,21 @@ export default {
       audioDuration: [],
       notReady: true,
       count: -1,
-      delay: -200,
+      delay: 0,
+      numRepeat: 1,
       repeat: 1,
-      numRepeat: 0,
+      failRepeat: 0,
       status: "info",
       statusString: "空闲中",
       domains: [
-        // { key: 0, value: "room" },
+        { key: 0, value: "b508" },
         { key: 1, value: "15cm" },
-        { key: 2, value: "my_device" },
-        { key: 3, value: "jbl" },
-        { key: 4, value: "loudness60" },
+        { key: 2, value: "hornor20" },
+        { key: 3, value: "legion" },
+        { key: 4, value: "loudness55" },
         { key: 5, value: "noise30" },
       ],
+      address: "192.168.43.115",
     };
   },
   methods: {
@@ -210,7 +213,7 @@ export default {
                 type: "warning",
               });
               this.count += 1; // 录音失败，重来
-              this.numRepeat += 1;
+              this.failRepeat += 1;
               // swap
               //   let temp = recorder;
               //   recorder = recorder1;
@@ -228,7 +231,7 @@ export default {
             });
             //   recorder.play();
             // let wav = recorder.getWAVBlob();
-            this.numRepeat = 0;
+            this.failRepeat = 0;
             console.log("uploading audio: " + fullPath);
             this.upload(wav, fullPath).then(cb, (e) => {
               this.$message({
@@ -302,14 +305,18 @@ export default {
         if (this.repeat <= 0) {
           this.status = "success";
           this.statusString =
-            "实验成功！共录制音频" + this.audioList.length + "条";
+            "实验成功！共录制音频" +
+            this.audioList.length +
+            " * " +
+            this.numRepeat +
+            "条";
           this.repeat = 0;
           return;
         } else {
           this.count = this.audioList.length - 1;
         }
       }
-      this.notReady = true;
+      //   this.notReady = true;
       console.log("exp " + this.count + ", repeat " + this.repeat + " started");
       let audioRelativePath = this.audioList[this.count]; // 相对task目录的相对路径
       let audioPath = task + "/" + audioRelativePath; // 相对audio根路径的相对路径
@@ -334,7 +341,9 @@ export default {
               this.$message({
                 showClose: true,
                 message:
-                  "音频播放成功：" +
+                  "第" +
+                  (this.numRepeat - this.repeat + 1) +
+                  "遍，音频播放成功：" +
                   this.count +
                   "；时长：" +
                   this.audioDuration[this.count] / 1000 +
@@ -360,20 +369,24 @@ export default {
           this.record(
             fullPath,
             () => {
-              if (this.numRepeat > 5) {
+              if (this.failRepeat > 6) {
                 this.$message({
                   showClose: true,
                   message: "录音故障",
                   type: "error",
                 });
-                this.numRepeat = 0;
+                this.failRepeat = 0;
                 this.status = "danger";
                 this.statusString = "实验失败，录音故障";
+                // setTimeout(() => {
+                //   this.numRepeat -= 1;
+                //   this.exp(this.task);
+                // }, 5000);
                 return;
               }
               setTimeout(() => {
                 this.exp(task, play);
-              }, 1200); // 一秒实验间隔，确保录制成功！
+              }, 1000); // 一秒实验间隔，确保录制成功！
             },
             play
           );
@@ -386,6 +399,7 @@ export default {
       //   this.audioList.forEach((audio, idx) => {
       //     p = setTimeout(() => {}, 2000);
       //   });
+      this.repeat = this.numRepeat;
       this.exp(this.task);
       this.status = "";
       this.statusString = "实验中...";
@@ -393,6 +407,7 @@ export default {
     },
     test(count) {
       if (count <= 0) return;
+      this.repeat = this.numRepeat;
       this.getAudios("test", () => {
         this.exp("test", true);
         // setTimeout(
@@ -475,6 +490,9 @@ export default {
         console.log(`${error.name} : ${error.message}`);
       }
     );
+    // debugger;
+    console.log("ip: ", process.env.BASE_IP.toString());
+    this.address = process.env.BASE_IP.toString();
   },
 };
 </script>
