@@ -1,0 +1,4 @@
+D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\obj\Release\netcoreapp3.1\win-x64\PubTmp\Out\appsettings.Development.json
+D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\obj\Release\netcoreapp3.1\win-x64\PubTmp\Out\appsettings.json
+D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\obj\Release\netcoreapp3.1\win-x64\PubTmp\Out\phy_exp_api.pdb
+D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\obj\Release\netcoreapp3.1\win-x64\PubTmp\Out\phy_exp_api.exe

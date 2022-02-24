@@ -18,3 +18,6 @@ D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\obj\Release\ne
 D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\obj\Release\netcoreapp3.1\phy_exp_api.dll
 D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\obj\Release\netcoreapp3.1\phy_exp_api.pdb
 D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\obj\Release\netcoreapp3.1\phy_exp_api.genruntimeconfig.cache
+D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\bin\Release\netcoreapp3.1\Interop.Shell32.dll
+D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\obj\Release\netcoreapp3.1\Interop.Shell32.dll
+D:\Users\KKKKKP\Desktop\physical_exper_helper\backend\phy_exp_api\obj\Release\netcoreapp3.1\phy_exp_api.csproj.ResolveComReference.cache

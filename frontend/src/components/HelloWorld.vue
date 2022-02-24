@@ -212,6 +212,8 @@ export default {
                 message: "录音时长不足：" + recorder.duration,
                 type: "warning",
               });
+              this.status = "warning";
+              this.statusString = "录音故障，重新尝试中：" + this.failRepeat;
               this.count += 1; // 录音失败，重来
               this.failRepeat += 1;
               // swap
@@ -232,6 +234,8 @@ export default {
             //   recorder.play();
             // let wav = recorder.getWAVBlob();
             this.failRepeat = 0;
+            this.status = "";
+            this.statusString = "实验中...(录制成功)";
             console.log("uploading audio: " + fullPath);
             this.upload(wav, fullPath).then(cb, (e) => {
               this.$message({
@@ -239,6 +243,8 @@ export default {
                 message: "音频上传失败：" + e,
                 type: "error",
               });
+              this.status = "danger";
+              this.statusString = "实验失败，录音上传故障";
             });
             //   recorder.play();
             return 1;
@@ -350,6 +356,8 @@ export default {
                   " s",
                 type: "success",
               });
+              this.status = "";
+              this.statusString = "实验中...(播放成功)";
             },
             // 失败回调
             (e) => {
@@ -358,6 +366,8 @@ export default {
                 message: "音频播放失败：" + e,
                 type: "warning",
               });
+              this.status = "danger";
+              this.statusString = "实验失败，播放失败";
             }
           );
         },
